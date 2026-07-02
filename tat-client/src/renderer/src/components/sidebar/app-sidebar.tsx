@@ -8,6 +8,7 @@ import {
   Command,
   Frame,
   GalleryVerticalEnd,
+  LayoutDashboard,
   Map,
   PieChart,
   Settings2,
@@ -51,16 +52,22 @@ const data = {
       plan: "Free",
     },
   ],
+  
   navMain: [
     {
-      title: "Playground",
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: LayoutDashboard
+    },
+    {
+      title: "Projects",
       url: "#",
       icon: SquareTerminal,
-      isActive: true,
+      isActive: false,
       items: [
         {
-          title: "History",
-          url: "#",
+          title: "Create Project",
+          url: "/project/create",
         },
         {
           title: "Starred",

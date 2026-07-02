@@ -1,8 +1,11 @@
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
 // Custom APIs for renderer
-const api = {}
+const api = {
+  selectProjectFolder: () => ipcRenderer.invoke('select-project-folder') as Promise<string | null>,
+  selectProjectFile: () => ipcRenderer.invoke('select-project-file') as Promise<string | null>,
+}
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise
