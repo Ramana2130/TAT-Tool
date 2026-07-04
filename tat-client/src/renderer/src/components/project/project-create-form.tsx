@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
-import { CheckIcon, ChevronLeft, FolderKanban, FolderOpen, X } from "lucide-react"
+import {  FolderKanban, FolderOpen, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,9 +10,9 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import MultiSelect from "../ui/multi-select"
 import { TerminalLog } from "./terminal-log"
-import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog"
+import { toast } from "sonner"
 
-const FRAMEWORK_OPTIONS = ["React", "Vite", "Next.js", "Electron", "Node.js"] as const
+// const FRAMEWORK_OPTIONS = ["React", "Vite", "Next.js", "Electron", "Node.js"] as const
 
 export default function ProjectCreateForm() {
   const [projectName, setProjectName] = useState("")
@@ -22,13 +22,13 @@ export default function ProjectCreateForm() {
   const [submitted, setSubmitted] = useState(false)
   const [terminalOpen, setTerminalOpen] = useState(false)
 
-  const toggleFramework = (framework: string) => {
-    setFrameworks((current) =>
-      current.includes(framework)
-        ? current.filter((item) => item !== framework)
-        : [...current, framework]
-    )
-  }
+  // const toggleFramework = (framework: string) => {
+  //   setFrameworks((current) =>
+  //     current.includes(framework)
+  //       ? current.filter((item) => item !== framework)
+  //       : [...current, framework]
+  //   )
+  // }
 
   const pickProjectFolder = async () => {
     const selectedPath = await window.api.selectProjectFolder()
@@ -41,22 +41,27 @@ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
   event.preventDefault()
 
   if (!projectName.trim()) {
-    alert("Please enter a project name")
+    toast.warning("Please enter a project name")
     return
   }
 
-  if (frameworks.length === 0) {
-    alert("Please select at least one framework")
+  if (!frameworks || frameworks.length === 0) {
+    toast.warning("Please select at least one framework")
     return
   }
 
   if (!projectPath.trim()) {
-    alert("Please choose the project location")
+    toast.warning("Please choose the project location")
     return
   }
 
   if (!confirmDetails) {
-    alert("Please confirm the project details")
+    toast.warning("Please confirm the project details")
+    return
+  }
+
+  if(!frameworks){
+    toast.warning("Please select at least one framework")
     return
   }
 
@@ -82,7 +87,7 @@ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 }
 
   return (
-    <div className=" flex w-full max-w-5xl flex-col gap-6">
+    <div className=" flex w-full max-w-7xl flex-col gap-6">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
@@ -165,7 +170,7 @@ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 
             <Separator />
 
-            <div className="flex items-start gap-3 rounded-lg border border-border bg-background p-4">
+            <div className="flex items-start gap-3 rounded-lg border border-amber-500 bg-background p-4">
               <Checkbox
                 checked={confirmDetails}
                 onCheckedChange={(checked) => setConfirmDetails(Boolean(checked))}
@@ -198,7 +203,7 @@ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
   </div>
 )}
 
-      <Button
+      {/* <Button
         type="button"
         variant="ghost"
         size="sm"
@@ -207,7 +212,7 @@ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
       >
         <X className="size-4" />
         Clear path
-      </Button>
+      </Button> */}
     </div>
   )
 }
