@@ -79,7 +79,7 @@ export function LoginForm({
               </Field>
               <Field>
                 <Link to="/dashboard">
-                  <Button type="submit">Login</Button>
+                  <Button className="w-full" type="submit">Login</Button>
                 </Link>
                 <FieldDescription className="text-center">
                   Don&apos;t have an account? <a href="#">Sign up</a>
