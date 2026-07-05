@@ -96,7 +96,7 @@ const data = {
     },
     {
       title: "Terminal",
-      url: "#",
+      url: "/terminal",
       icon: FileTerminal,
       // items: [
       //   {
