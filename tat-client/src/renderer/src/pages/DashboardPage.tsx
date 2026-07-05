@@ -1,3 +1,5 @@
+import { AIchat } from '@/components/dashboard/ai-chart'
+import FrameworkUsage from '@/components/dashboard/framework-usage'
 import { RecentProjects } from '@/components/dashboard/recent-project'
 import { Stats } from '@/components/dashboard/stats'
 import { TechStack } from '@/components/dashboard/tech-stack'
@@ -17,6 +19,13 @@ export default function DashboardPage() {
         <Stats />
         <div className="grid grid-cols-2 gap-4">
           <div>
+            <div className='flex gap-2 items-center py-2'>
+              <MemoryStick color="#155dfc" />
+              <h1 className="font-semibold text-xl">Tech Stack Available</h1>
+            </div>
+              <TechStack />
+          </div>
+                    <div>
             <div className="flex gap-2 items-center py-2">
               <Clock2 color="#155dfc" />
               <h1 className="font-semibold text-xl">Recent Projects</h1>
@@ -27,12 +36,13 @@ export default function DashboardPage() {
               </div>
             </Card>
           </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
           <div>
-            <div className='flex gap-2 items-center py-2'>
-              <MemoryStick color="#155dfc" />
-              <h1 className="font-semibold text-xl">Tech Stack Available</h1>
-            </div>
-              <TechStack />
+            <FrameworkUsage />
+          </div>
+          <div className=''>
+            <AIchat/>
           </div>
         </div>
         {/* <div className="min-h-screen flex-1 rounded-xl bg-muted/50 md:min-h-min" /> */}

@@ -71,7 +71,7 @@ const data = {
         },
         {
           title: "Project List",
-          url: "#",
+          url: "/project/list",
         },
       ],
     },
