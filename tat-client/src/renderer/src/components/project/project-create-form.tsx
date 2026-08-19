@@ -1,218 +1,290 @@
-import { useState } from "react"
-import { Link } from "react-router-dom"
-import {  FolderKanban, FolderOpen, X } from "lucide-react"
+import { useRef, useState } from 'react'
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
-import MultiSelect from "../ui/multi-select"
-import { TerminalLog } from "./terminal-log"
-import { toast } from "sonner"
+import { Link } from 'react-router-dom'
 
-// const FRAMEWORK_OPTIONS = ["React", "Vite", "Next.js", "Electron", "Node.js"] as const
+import { FolderKanban, FolderOpen } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+
+import { Checkbox } from '@/components/ui/checkbox'
+
+import { Input } from '@/components/ui/input'
+
+import { Label } from '@/components/ui/label'
+
+import { Separator } from '@/components/ui/separator'
+
+import { toast } from 'sonner'
+
+import { TerminalLog } from './terminal-log'
+
+import { createProject } from '@/lib/project-api'
 
 export default function ProjectCreateForm() {
-  const [projectName, setProjectName] = useState("")
-  const [frameworks, setFrameworks] = useState<string[]>(["React"])
-  const [projectPath, setProjectPath] = useState("")
+  const [projectName, setProjectName] = useState('')
+
+  const [projectPath, setProjectPath] = useState('')
+
   const [confirmDetails, setConfirmDetails] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
+
   const [terminalOpen, setTerminalOpen] = useState(false)
 
-  // const toggleFramework = (framework: string) => {
-  //   setFrameworks((current) =>
-  //     current.includes(framework)
-  //       ? current.filter((item) => item !== framework)
-  //       : [...current, framework]
-  //   )
-  // }
+  const [projectId, setProjectId] = useState<number | null>(null)
 
+  const [creating, setCreating] = useState(false)
+  const creatingRef = useRef(false)
+  const [technology, setTechnology] = useState('Select')
+
+  /*
+   * Select folder
+   */
   const pickProjectFolder = async () => {
-    const selectedPath = await window.api.selectProjectFolder()
-    if (selectedPath) {
-      setProjectPath(selectedPath)
+    try {
+      const selectedPath = await window.api.selectProjectFolder()
+
+      if (selectedPath) {
+        setProjectPath(selectedPath)
+      }
+    } catch (error) {
+      console.error(error)
+
+      toast.error('Unable to select folder')
     }
   }
 
-const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-  event.preventDefault()
+  /*
+   * Create project
+   */
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
 
-  if (!projectName.trim()) {
-    toast.warning("Please enter a project name")
-    return
+    if (creatingRef.current) {
+      return
+    }
+
+    if (!projectName.trim()) {
+      toast.warning('Please enter a project name')
+      return
+    }
+
+    if (!projectPath.trim()) {
+      toast.warning('Please choose the project location')
+      return
+    }
+
+    if (!confirmDetails) {
+      toast.warning('Please confirm the project details')
+      return
+    }
+
+    /*
+     * IMPORTANT
+     *
+     * projectPath must be the PARENT folder.
+     *
+     * Example:
+     * projectName = jack
+     * projectPath = T:\tat-demo
+     *
+     * NOT:
+     * T:\tat-demo\jack
+     */
+
+    const cleanProjectName = projectName.trim()
+    const cleanProjectPath = projectPath.trim().replace(/[\\/]+$/, '')
+
+    console.log('========== PROJECT REQUEST ==========')
+
+    console.log({
+      projectName: cleanProjectName,
+      technologyName: technology,
+      projectPath: cleanProjectPath
+    })
+
+    console.log('====================================')
+
+    try {
+      creatingRef.current = true
+      setCreating(true)
+
+      /*
+       * Send request to Spring Boot
+       */
+      const project = await createProject({
+        projectName: cleanProjectName,
+        technologyName: technology,
+        projectPath: cleanProjectPath
+      })
+
+      console.log('Project created:', project)
+
+      /*
+       * Backend returns the database ID immediately.
+       */
+      setProjectId(project.id)
+
+      /*
+       * Now open live terminal.
+       */
+      setTerminalOpen(true)
+
+      toast.success('Project creation started')
+    } catch (error) {
+      console.error('Project creation error:', error)
+
+      toast.error(error instanceof Error ? error.message : 'Project creation failed')
+    } finally {
+      setCreating(false)
+
+      creatingRef.current = false
+    }
   }
-
-  if (!frameworks || frameworks.length === 0) {
-    toast.warning("Please select at least one framework")
-    return
-  }
-
-  if (!projectPath.trim()) {
-    toast.warning("Please choose the project location")
-    return
-  }
-
-  if (!confirmDetails) {
-    toast.warning("Please confirm the project details")
-    return
-  }
-
-  if(!frameworks){
-    toast.warning("Please select at least one framework")
-    return
-  }
-
-  console.log({
-    projectName,
-    frameworks,
-    projectPath,
-  })
-
-  // Open terminal dialog
-  setTerminalOpen(true)
-
-  // TODO: Call your Electron backend here
-  // await window.api.createProject(...)
-
-  // Demo delay
-  await new Promise((resolve) => setTimeout(resolve, 8000))
-
-  // Close dialog automatically
-  setTerminalOpen(false)
-
-  setSubmitted(true)
-}
-
   return (
-    <div className=" flex w-full max-w-7xl flex-col gap-6">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-            <FolderKanban className="size-5" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Create Project</h1>
-            <p className="text-sm text-muted-foreground">
-              Choose your framework, pick a folder, and generate the project.
-            </p>
-          </div>
+    <div className="flex flex-col w-full gap-6 max-w-7xl">
+      {/* Header */}
+
+      <div className="flex items-center gap-3">
+        <div className="flex items-center justify-center size-10 rounded-xl bg-primary text-primary-foreground">
+          <FolderKanban className="size-5" />
         </div>
 
-        {/* <Button asChild variant="ghost" size="sm">
-          <Link to="/dashboard">
-            <ChevronLeft className="size-4" />
-            Back
-          </Link>
-        </Button> */}
+        <div>
+          <h1 className="text-2xl font-semibold">Create Project</h1>
+
+          <p className="text-sm text-muted-foreground">
+            Create a React project with live terminal output.
+          </p>
+        </div>
       </div>
 
-      <Card className="bg-card/90 shadow-sm backdrop-blur">
+      {/* Form */}
+
+      <Card className="shadow-sm bg-card/90">
         <CardHeader>
           <CardTitle>Project details</CardTitle>
-          <CardDescription>
-            Fill out the form below to set up your project.
-          </CardDescription>
+
+          <CardDescription>Enter the project name and choose where to create it.</CardDescription>
         </CardHeader>
 
-        <CardContent className="space-y-6">
-          {/* {submitted && (
-            <div>
-              <TerminalLog />
-            </div>
-          )} */}
-
+        <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Project name */}
+
             <div className="space-y-2">
               <Label htmlFor="projectName">Project Name</Label>
+
               <Input
                 id="projectName"
                 value={projectName}
                 onChange={(event) => setProjectName(event.target.value)}
-                placeholder="Student Management System"
+                placeholder="my-react-app"
+                disabled={creating}
               />
-              <p className="text-sm text-muted-foreground">
-                Enter your project name.
-              </p>
             </div>
 
-  
+            {/* Technology */}
+
             <div className="space-y-2">
-  <Label>Frameworks</Label>
+              <Label htmlFor="technology">Technology</Label>
 
-  <MultiSelect />
+              <select
+                id="technology"
+                value={technology}
+                onChange={(event) => setTechnology(event.target.value)}
+                disabled={creating}
+                className="w-full px-3 py-2 border rounded-lg bg-background"
+              >
+                <option value="Select">Select Technology</option>
+                <option value="React JS">React JS</option>
+                <option value="Python">Python</option>
+              </select>
 
-  <p className="text-sm text-muted-foreground">
-    Select one or more frameworks.
-  </p>
-</div>
+              <p className="text-sm text-muted-foreground">Select the project technology.</p>
+            </div>
+
+            {/* Location */}
 
             <div className="space-y-2">
               <Label htmlFor="projectPath">Project Location</Label>
+
               <div className="flex gap-3">
                 <Input
                   id="projectPath"
                   value={projectPath}
                   onChange={(event) => setProjectPath(event.target.value)}
-                  placeholder="Choose a folder path"
+                  placeholder="T:\Projects"
+                  disabled={creating}
                 />
-                <Button type="button" variant="outline" onClick={pickProjectFolder}>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={pickProjectFolder}
+                  disabled={creating}
+                >
                   <FolderOpen className="size-4" />
                   Browse
                 </Button>
               </div>
-              <p className="text-sm text-muted-foreground">
-                The selected folder path will appear in the input.
-              </p>
             </div>
 
             <Separator />
 
-            <div className="flex items-start gap-3 rounded-lg border border-amber-500 bg-background p-4">
+            {/* Confirmation */}
+
+            <div className="flex items-start gap-3 p-4 border rounded-lg border-amber-500 bg-background">
               <Checkbox
                 checked={confirmDetails}
                 onCheckedChange={(checked) => setConfirmDetails(Boolean(checked))}
+                disabled={creating}
               />
-              <div className="space-y-1">
-                <Label className="text-sm font-medium">
-                  I have verified all project details.
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Please confirm the project name, framework, and folder path before generating the project.
+
+              <div>
+                <Label>I have verified the project details.</Label>
+
+                <p className="mt-1 text-sm text-muted-foreground">
+                  The project will be created in the selected folder.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3">
-              <Button asChild variant="outline">
+            {/* Buttons */}
+
+            <div className="flex justify-end gap-3">
+              <Button asChild variant="outline" disabled={creating}>
                 <Link to="/dashboard">Cancel</Link>
               </Button>
-              <Button type="submit">Generate Project</Button>
+
+              <Button type="submit" disabled={creating}>
+                {creating ? 'Creating...' : 'Create Project'}
+              </Button>
             </div>
           </form>
         </CardContent>
       </Card>
 
-    {terminalOpen && (
-  <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm">
-    <div className="absolute left-1/2 top-1/2 w-[900px] h-[550px] -translate-x-1/2 -translate-y-1/2">
-      <TerminalLog />
-    </div>
-  </div>
-)}
+      {/* LIVE TERMINAL */}
 
-      {/* <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="w-fit"
-        onClick={() => setProjectPath("")}
-      >
-        <X className="size-4" />
-        Clear path
-      </Button> */}
+      {terminalOpen && projectId && (
+        <div className="fixed inset-0 z-50 p-6 bg-black/70 backdrop-blur-sm">
+          <div className="flex items-center h-full max-w-6xl mx-auto">
+            <div className="h-[650px] w-full">
+              <TerminalLog
+                projectId={projectId}
+                onClose={() => {
+                  /*
+                   * Allow closing terminal
+                   * after request has started.
+                   */
+                  setTerminalOpen(false)
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

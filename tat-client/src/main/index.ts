@@ -1,6 +1,6 @@
-import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
+import { electronApp, is, optimizer } from '@electron-toolkit/utils'
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { join } from 'path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
 function createWindow(): void {
@@ -55,7 +55,7 @@ app.whenReady().then(() => {
   ipcMain.handle('select-project-folder', async () => {
     const result = await dialog.showOpenDialog({
       properties: ['openDirectory'],
-      title: 'Select project folder',
+      title: 'Select project folder'
     })
 
     if (result.canceled || result.filePaths.length === 0) {
@@ -68,7 +68,7 @@ app.whenReady().then(() => {
   ipcMain.handle('select-project-file', async () => {
     const result = await dialog.showOpenDialog({
       properties: ['openFile'],
-      title: 'Select file',
+      title: 'Select file'
     })
 
     if (result.canceled || result.filePaths.length === 0) {
